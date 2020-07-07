@@ -1,5 +1,3 @@
-// Simulador para generar datos y manejador de base de datos
-
 #include "cbackend.h"
 #include <QSqlDatabase>
 #include <QDebug>
@@ -28,10 +26,10 @@ void CBackend::OnTimeoutLog()
 {
     static double valX;
     double valY=(qSin(valX))*(180/3.141594);
-    //logDataDB(m_currentTbl,LIT_101,valY);
+    //logDataDB(m_currentTbl,SENSOR1,valY);
     //logDataDB(m_currentTbl,TIT_102,valY);
     valX+=0.005;
-    setSensor1(valY);
+    setSensor1(valY/10);
 
 }
 
@@ -64,16 +62,23 @@ void CBackend::setSensor2(double val)
     emit sensor1Changed(m_sensor2);
 }
 
+void CBackend::OnStart(bool run)
+{
+    m_run=run;
+    if(m_run)m_tmrLog->start();
+    else m_tmrLog->stop();
+}
+
 void CBackend::InitDB(QString dbName)
 {
 
-    m_db= new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL","connectio1"));
+    m_db= new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     m_db->setHostName("localhost");
-    m_db->setDatabaseName("dbData");
-    m_db->setUserName("sei10");
-    m_db->setPassword("sei0");
+    m_db->setDatabaseName("dbData.db");
+    //m_db->setUserName("sei10");
+    //m_db->setPassword("sei0");
 
-    m_currentDB=dbName;
+   // m_currentDB=dbName;
     QSqlQuery query(*m_db);
 
     bool r =m_db->open();
@@ -101,14 +106,14 @@ void CBackend::InitDB(QString dbName)
     }
 
 */
-    m_currentTbl="tbl_data2";
+    m_currentTbl="tbl_data";
     r=createTable(m_currentTbl);
 
 
 
     m_tmrLog->setInterval(1);
     connect(m_tmrLog,&QTimer::timeout,this,&CBackend::OnTimeoutLog);
-    m_tmrLog->start();
+
 
 
 }
@@ -116,18 +121,18 @@ void CBackend::InitDB(QString dbName)
 
 void CBackend::logDataDB(QString tbl,uint16_t tag, double value)
 {
-    QDateTime startTime;
-    startTime.setMSecsSinceEpoch(9e11);
+    //QDateTime startTime;
+    //startTime.setMSecsSinceEpoch(9e11);
 
-    QDateTime dtime(QDateTime::currentDateTime());
+    //QDateTime dtime(QDateTime::currentDateTime());
 
     //INSERT INTO tbl_data1(idtag, dataFloat,timeStamp) VALUES (10, 10.5, 1012
     QSqlQuery query(*m_db);
-    query.prepare("INSERT INTO "+ tbl +" (idtag, dataFloat,timeStamp) "
-                  "VALUES (:idtag, :dataFloat, :timeStamp)");
+    query.prepare("INSERT INTO "+ tbl +" (idtag, dataFloat) "
+                  "VALUES (:idtag, :dataFloat)");
     query.bindValue(":idtag", tag);
     query.bindValue(":dataFloat", value);
-    query.bindValue(":timeStamp",startTime.msecsTo(dtime));
+    //query.bindValue(":timeStamp",startTime.msecsTo(dtime));
 
 
 
@@ -138,7 +143,7 @@ void CBackend::logDataDB(QString tbl,uint16_t tag, double value)
         return;
 
     }
-    else ;//qDebug() << "timeStam: " << startTime.msecsTo(dtime);
+    //else ;//qDebug() << "timeStam: " << startTime.msecsTo(dtime);
    // qDebug()<< startTime;
   //  qDebug()<< dtime;
 
@@ -147,21 +152,23 @@ void CBackend::logDataDB(QString tbl,uint16_t tag, double value)
 
 bool CBackend::createTable(QString tbl)
 {
-    QSqlQuery query(*m_db);
-    query.prepare("CREATE TABLE IF NOT EXISTS "+ m_currentDB+"."+tbl+ " ("
-                    " idtag INT UNSIGNED  NOT NULL,"
-                    " dataInt INT NULL,"
-                    " dataFloat REAL NULL,"
-                    " dataString varchar(32) NULL,"
-                    " dataBool BOOL NULL,"
-                    " timeStamp BIGINT UNSIGNED NOT NULL  PRIMARY KEY"
-                    " )"
+    /*
+    CREATE TABLE `tbl_data` (
+        `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
+        `idTag`	INTEGER NOT NULL,
+        `value`	REAL
+    );
+    */
 
-                    " ENGINE=InnoDB"
-                    " DEFAULT CHARSET=utf8mb4"
-                    " COLLATE=utf8mb4_general_ci;"
-                    " CREATE UNIQUE INDEX tbl_data1_timeStamp_IDX USING BTREE ON dbtest.tbl_data1 (`timeStamp`);"
-                    " CREATE INDEX tbl_data1_idtag_IDX USING BTREE ON dbtest.tbl_data1 (idtag););");
+    QSqlQuery query(*m_db);
+    QString strQuery;
+    strQuery=("CREATE TABLE IF NOT EXISTS "+tbl+
+              " ("
+              "ID	INTEGER PRIMARY KEY AUTOINCREMENT,"
+              " idtag INT UNSIGNED  NOT NULL,"
+              " dataFloat REAL NULL"
+              " );");
+    query.prepare(strQuery);
 
     if(!query.exec())
     {

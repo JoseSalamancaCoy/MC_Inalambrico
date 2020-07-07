@@ -1,12 +1,8 @@
-/* Contiene la ventana principal y configuracion del plotter
-    Para este proyecto se utiliza customplot para mejorar el rendimiento
-    Se escribe directamente en archivos .CSV
-*/
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "qcustomplot.h"
 #include <QVector>
+#include <QFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -17,6 +13,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     m_indX=0;
+
+    m_file=new QFile("fileData.csv");
+
+
+
 
 
     m_backend=new CBackend(this);
@@ -38,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
       }
 */
       ui->horizontalScrollBar->setRange(0, 500);
-      ui->verticalScrollBar->setRange(-100, 100);
+      ui->verticalScrollBar->setRange(-10, 10);
 
       // create connection between axes and scroll bars:
       connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
@@ -96,11 +97,14 @@ void MainWindow::yAxisChanged(QCPRange range)
 
 void MainWindow::OnNewData(float val)
 {
+    m_VectorFileY.push_back(val);
+    m_VectorFileX.push_back(m_indX);
 
     if(m_XValues.length()>=10000)
     {
         m_YValues.push_back(val);
         m_YValues.pop_front();
+
 
         m_XValues.push_back(m_indX++);
         m_XValues.pop_front();
@@ -132,3 +136,55 @@ void MainWindow::OnNewData(float val)
 
 
 
+
+
+void MainWindow::on_actionSalir_triggered()
+{
+    this->close();
+}
+
+void MainWindow::on_actionGuardar_triggered()
+{
+    m_backend->OnStart(false);
+
+    if (!m_file->open(QIODevice::Append | QIODevice::Text))
+        return;
+
+    QTextStream textStream(m_file);
+
+
+    for (int var = 0; var < m_VectorFileX.length(); ++var)
+    {
+        textStream << QString::number(m_VectorFileX[var]) << "," << QString::number(m_VectorFileY[var]) << "\n\r" ;
+    }
+
+    on_actionParar_triggered();
+
+    m_file->close();
+}
+
+void MainWindow::on_actionIniciar_triggered()
+{
+    m_backend->OnStart(true);
+    if (!m_file->open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream textStream(m_file);
+
+
+     textStream << "# Archivo para alamacenamiento de datos \n\r";
+     textStream << "# Value X, Value Y \n\r";
+
+     m_file->close();
+}
+
+void MainWindow::on_actionParar_triggered()
+{
+    m_backend->OnStart(false);
+    m_VectorFileX.clear();
+    m_VectorFileY.clear();
+    m_XValues.clear();
+    m_YValues.clear();
+    m_indX=0;
+
+}

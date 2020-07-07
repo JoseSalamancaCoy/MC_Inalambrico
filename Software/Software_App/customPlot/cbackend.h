@@ -20,6 +20,10 @@ public:
     Q_PROPERTY(double sensor1 READ GetSensor1 WRITE setSensor1 NOTIFY sensor1Changed)
     Q_PROPERTY(double sensor2 READ GetSensor2 WRITE setSensor2 NOTIFY sensor2Changed)
 
+
+    double GetSensor1();
+    double GetSensor2();
+
 signals:
 
     void tit101PointChanged(quint64 xval, double yval);
@@ -30,12 +34,10 @@ signals:
 
 public slots:
     void OnTimeoutLog();
-    double GetSensor1();
-    double GetSensor2();
-
 
     void setSensor1(double val);
     void setSensor2(double val);
+    void OnStart(bool run);
 
 
 
@@ -55,6 +57,8 @@ private:
 
     double m_sensor1;
     double m_sensor2;
+
+    bool m_run;
 
 
 

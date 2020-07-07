@@ -51,8 +51,44 @@
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionGuardar"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <widget class="QMenu" name="menuTendencia">
+    <property name="title">
+     <string>Tendencia</string>
+    </property>
+    <addaction name="actionIniciar"/>
+    <addaction name="actionParar"/>
+   </widget>
+   <addaction name="menuArchivo"/>
+   <addaction name="menuTendencia"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionGuardar">
+   <property name="text">
+    <string>Guardar</string>
+   </property>
+  </action>
+  <action name="actionSalir">
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
+  <action name="actionIniciar">
+   <property name="text">
+    <string>Iniciar</string>
+   </property>
+  </action>
+  <action name="actionParar">
+   <property name="text">
+    <string>Parar</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
