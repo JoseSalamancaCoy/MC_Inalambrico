@@ -13,8 +13,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     m_indX=0;
+    QString nameFile;
+    nameFile="file-"+ QDate::currentDate().toString("MM-dd-yyyy")+".csv";
+    qDebug() << nameFile;
 
-    m_file=new QFile("fileData.csv");
+    m_file=new QFile(nameFile);
 
 
 
@@ -49,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 
       // initialize axis range (and scroll bar positions via signals we just connected):
       ui->ploter->xAxis->setRange(0, 100, Qt::AlignLeft);
-      ui->ploter->yAxis->setRange(-100, 100, Qt::AlignLeft);
+      ui->ploter->yAxis->setRange(-6, 6, Qt::AlignLeft);
 
       //ui->ploter->graph(0)->setData(x, y);
       ui->ploter->axisRect()->setupFullAxesBox(true);

@@ -29,7 +29,7 @@ void CBackend::OnTimeoutLog()
     //logDataDB(m_currentTbl,SENSOR1,valY);
     //logDataDB(m_currentTbl,TIT_102,valY);
     valX+=0.005;
-    setSensor1(valY/10);
+    setSensor1(valY/22);
 
 }
 
