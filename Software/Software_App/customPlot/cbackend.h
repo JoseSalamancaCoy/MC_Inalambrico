@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
-class QSqlDatabase;
+
 
 class CBackend : public QObject
 {
@@ -43,17 +43,12 @@ public slots:
 
 private:
 
-    void InitDB(QString dbName);
-    void logDataDB(QString tbl, uint16_t tag, double value);
-
-
-    bool createTable( QString tbl);
 
     QTimer *m_tmrLog;
 
     QString m_currentDB;
     QString m_currentTbl;
-    QSqlDatabase *m_db;
+
 
     double m_sensor1;
     double m_sensor2;
