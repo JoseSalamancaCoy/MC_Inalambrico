@@ -1,8 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "cbluetooth.h"
 #include "qcustomplot.h"
 #include <QVector>
 #include <QFile>
+
+#include <QtBluetooth/qbluetoothdeviceinfo.h>
+#include <QtBluetooth/qbluetoothlocaldevice.h>
+#include <QtBluetooth/qbluetoothuuid.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,50 +18,31 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     m_indX=0;
+    m_RangePlot=10000;
     QString nameFile;
-    nameFile="file-"+ QDate::currentDate().toString("MM-dd-yyyy")+".csv";
+    nameFile="file-"+ QDateTime::currentDateTime().toString("MM-dd-yyyy-HH_mm")+".csv";
     qDebug() << nameFile;
 
     m_file=new QFile(nameFile);
 
-
-
-
-
-    m_backend=new CBackend(this);
-    connect(m_backend,&CBackend::sensor1Changed,this,&MainWindow::OnNewData);
-
-
-
     ui->ploter->addGraph();
     ui->ploter->graph()->setPen(QPen(Qt::blue));
-    ui->ploter->graph()->setBrush(QBrush(QColor(0, 0, 255, 20)));
 
-
-/*
-    for (int i=0; i<500; ++i)
-      {
-        x[i] = (i/499.0-0.5)*10;
-        y[i] = qExp(-x[i]*x[i]*0.25)*qSin(x[i]*5)*5;
-
-      }
-*/
-      ui->horizontalScrollBar->setRange(0, 500);
-      ui->verticalScrollBar->setRange(-10, 10);
-
-      // create connection between axes and scroll bars:
-      connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
-      connect(ui->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertScrollBarChanged(int)));
-      connect(ui->ploter->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
-      connect(ui->ploter->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
+     connect(ui->ploter->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
+     connect(ui->ploter->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
 
       // initialize axis range (and scroll bar positions via signals we just connected):
-      ui->ploter->xAxis->setRange(0, 100, Qt::AlignLeft);
-      ui->ploter->yAxis->setRange(-6, 6, Qt::AlignLeft);
+      ui->ploter->xAxis->setRange(0, 10000, Qt::AlignLeft);
+      ui->ploter->yAxis->setRange(-1, 20, Qt::AlignBaseline);
 
       //ui->ploter->graph(0)->setData(x, y);
       ui->ploter->axisRect()->setupFullAxesBox(true);
       ui->ploter->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+      m_run_tendencia=false;
+
+      ui->actionGuardar->setEnabled(false);
+      ui->menuTendencia->setEnabled(false);
+      ui->actionReiniciar->setEnabled(false);
 
 }
 
@@ -87,45 +73,44 @@ void MainWindow::vertScrollBarChanged(int value)
 
 void MainWindow::xAxisChanged(QCPRange range)
 {
-    ui->horizontalScrollBar->setValue(qRound(range.center()*100.0)); // adjust position of scroll bar slider
-    ui->horizontalScrollBar->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
 
 }
 
 void MainWindow::yAxisChanged(QCPRange range)
 {
-    ui->verticalScrollBar->setValue(qRound(-range.center()*100.0)); // adjust position of scroll bar slider
-    ui->verticalScrollBar->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
 }
 
-void MainWindow::OnNewData(float val)
+void MainWindow::OnNewData(float valY, float valX)
 {
-    m_VectorFileY.push_back(val);
-    m_VectorFileX.push_back(m_indX);
+    m_VectorFileY.push_back(valY);
+    m_VectorFileX.push_back(valX);
 
-    if(m_XValues.length()>=10000)
+
+
+    if(m_XValues.length()>=m_RangePlot)
     {
-        m_YValues.push_back(val);
-        m_YValues.pop_front();
+        m_YValues.push_back(valY);
+        //m_YValues.pop_front();
 
 
-        m_XValues.push_back(m_indX++);
-        m_XValues.pop_front();
+        m_XValues.push_back(valX);
+        //m_XValues.pop_front();
 
-        ui->ploter->xAxis->setRange(m_XValues.first(), m_XValues.last());
+        ui->ploter->xAxis->setRange(m_XValues.first()+m_indX,ui->ploter->xAxis->range().size(),Qt::AlignLeft);
 
-        //qDebug() << "zise: "<< ui->ploter->xAxis->range().size();
-
+        //qDebug() << "zise: "<< m_XValues.first();
         //qDebug() << "length: " << m_XValues.length();
+        m_indX++;
 
     }
     else
     {
-        m_XValues.append(m_indX++);
-        m_YValues.push_back(val);
-        ui->ploter->xAxis->setRange(m_XValues.first(), m_XValues.last(), Qt::AlignLeft);
-        //qDebug() << "yVal: " <<val  << "xVal: " << m_indX;
+        m_XValues.push_back(valX);
+        m_YValues.push_back(valY);
+        ui->ploter->xAxis->setRange(m_XValues.first(),ui->ploter->xAxis->range().size(), Qt::AlignLeft);
+
     }
+
 
 
 
@@ -133,12 +118,11 @@ void MainWindow::OnNewData(float val)
     ui->ploter->graph(0)->setData(m_XValues, m_YValues);
     //ui->ploter->axisRect()->setupFullAxesBox(true);
     ui->ploter->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    ui->ploter->replot();
+
+    if(m_run_tendencia) ui->ploter->replot();
+
 
 }
-
-
-
 
 
 void MainWindow::on_actionSalir_triggered()
@@ -148,7 +132,7 @@ void MainWindow::on_actionSalir_triggered()
 
 void MainWindow::on_actionGuardar_triggered()
 {
-    m_backend->OnStart(false);
+    m_run_tendencia=false;
 
     if (!m_file->open(QIODevice::Append | QIODevice::Text))
         return;
@@ -168,7 +152,7 @@ void MainWindow::on_actionGuardar_triggered()
 
 void MainWindow::on_actionIniciar_triggered()
 {
-    m_backend->OnStart(true);
+    m_run_tendencia=true;
     if (!m_file->open(QIODevice::WriteOnly | QIODevice::Text))
         return;
 
@@ -183,11 +167,125 @@ void MainWindow::on_actionIniciar_triggered()
 
 void MainWindow::on_actionParar_triggered()
 {
-    m_backend->OnStart(false);
-    m_VectorFileX.clear();
-    m_VectorFileY.clear();
+    m_run_tendencia=false;
+    //m_VectorFileX.clear();
+    //m_VectorFileY.clear();
+    //m_XValues.clear();
+   // m_YValues.clear();
+   // m_indX=0;
+
+}
+
+void MainWindow::on_actionConectar_triggered()
+{
+    //Bluetooth
+    // scan for services
+    const QBluetoothAddress adapter = localAdapters.isEmpty() ?
+                                           QBluetoothAddress() :
+                                           localAdapters.at(currentAdapterIndex).address();
+
+     BluSelector bluetoothSelector(adapter);
+     bluetoothSelector.startDiscovery(QBluetoothUuid(QBluetoothUuid::SerialPort));
+
+     if (bluetoothSelector.exec() == QDialog::Accepted) {
+         QBluetoothServiceInfo service = bluetoothSelector.service();
+
+         qDebug() << "Conectando al servisio 2" << service.serviceName()
+                  << "on" << service.device().name();
+
+         // Create client
+         qDebug() << "Creando una conexion";
+         m_blutooth = new CBluetooth(this);
+ qDebug() << "Conectando...";
+
+         connect(m_blutooth, &CBluetooth::messageReceived,
+                 this, &MainWindow::OnNewData);
+         connect(m_blutooth, &CBluetooth::disconnected,
+                 this, QOverload<>::of(&MainWindow::bluetoothDisconnected));
+         connect(m_blutooth, QOverload<const QString &>::of(&CBluetooth::connected),
+                 this, &MainWindow::connected);
+         connect(m_blutooth, &CBluetooth::socketErrorOccurred,
+                 this, &MainWindow::reactOnSocketError);
+         connect(this, &MainWindow::sendMessage, m_blutooth, &CBluetooth::sendMessage);
+ qDebug() << "Start client";
+         m_blutooth->startBluetooth(service);
+
+         devices.append(m_blutooth);
+     }
+
+     //ui->connectButton->setEnabled(true);
+
+    ui->horizontalSlider->setMaximum(10000);
+    ui->horizontalSlider->setValue(5000);
+}
+
+void MainWindow::sendClicked()
+{
+
+}
+
+void MainWindow::showMessage(const QString &sender, const QString &message)
+{
+
+}
+
+void MainWindow::bluetoothConnected(const QString &name)
+{
+
+
+
+}
+
+void MainWindow::bluetoothDisconnected(const QString &name)
+{
+
+}
+
+void MainWindow::bluetoothDisconnected()
+{
+    CBluetooth *blue = qobject_cast<CBluetooth *>(sender());
+    if (blue)
+    {
+        devices.removeOne(blue);
+        blue->deleteLater();
+    }
+}
+
+void MainWindow::connected(const QString &name)
+{
+    qDebug() << "Conectado A:" << name;
+
+    ui->actionGuardar->setEnabled(true);
+    ui->menuTendencia->setEnabled(true);
+    on_actionIniciar_triggered();
+}
+
+void MainWindow::reactOnSocketError(const QString &error)
+{
+
+}
+
+void MainWindow::newAdapterSelected()
+{
+
+}
+
+
+void MainWindow::on_actionReiniciar_triggered()
+{
     m_XValues.clear();
     m_YValues.clear();
     m_indX=0;
+}
+
+void MainWindow::on_horizontalSlider_sliderMoved(int position)
+{
+    //m_PositionX=position;
+    if (qAbs(ui->ploter->xAxis->range().center()-position) > 0.01) // if user is dragging plot, we don't want to replot twice
+    {
+        ui->ploter->xAxis->setRange(m_XValues.first(), position, Qt::AlignLeft);
+        ui->ploter->replot();
+        qDebug()<< "Posi: " << position << " range :" <<  ui->ploter->xAxis->range().size();
+    }
 
 }
