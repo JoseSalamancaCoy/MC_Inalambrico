@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-#include "ui_BluSelector.h"
+#include "ui_bluselector.h"
 #include "bluselector.h"
 
 #include <QtBluetooth/qbluetoothlocaldevice.h>
@@ -139,7 +139,7 @@ void BluSelector::serviceDiscovered(const QBluetoothServiceInfo &serviceInfo)
 
 void BluSelector::discoveryFinished()
 {
-    ui->status->setText(tr("Seleccione un dispositivo."));
+    ui->status->setText(tr("Seleccione un dispocitivo."));
 }
 
 void BluSelector::on_remoteDevices_itemActivated(QListWidgetItem *item)

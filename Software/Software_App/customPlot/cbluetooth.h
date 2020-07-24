@@ -5,6 +5,7 @@
 
 #include <QtBluetooth/qbluetoothserviceinfo.h>
 #include <QtBluetooth/qbluetoothsocket.h>
+#include <stdint.h>
 
 QT_FORWARD_DECLARE_CLASS(QBluetoothSocket)
 
@@ -25,9 +26,11 @@ public slots:
 
 signals:
     void messageReceived(const double &Y,const double &X);
+    void dataChanged(const uint32_t &valX, const uint16_t &valY);
     void connected(const QString &name);
     void disconnected();
     void socketErrorOccurred(const QString &errorString);
+    void bateryChanged(double value);
 
 private slots:
     void readSocket();
@@ -36,6 +39,7 @@ private slots:
 
 private:
     QBluetoothSocket *socket = nullptr;
+
 };
 
 #endif // CBLUETOOTH_H

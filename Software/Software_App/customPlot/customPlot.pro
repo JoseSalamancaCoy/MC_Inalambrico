@@ -25,7 +25,7 @@ SOURCES += \
 
 HEADERS += \
     bluselector.h \
-    cbluetooth.h \
+    cbluetooth.h \    
     mainwindow.h \
     qcustomplot.h
 
@@ -33,7 +33,7 @@ FORMS += \
     bluselector.ui \
     mainwindow.ui
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+
+
+RESOURCES += \
+    Recursos.qrc
