@@ -15,6 +15,31 @@ typedef union
     uint16_t Preset;
 }SENSAS_TIMER;
 
+typedef union
+{
+    struct
+    {
+        uint8_t low;
+        uint8_t hight;
+    };
+    uint16_t value16;
+    char stream[2];
+    
+}uint16data_t;
+
+
+
+typedef union 
+{
+  struct 
+  {
+      uint16_t valY;
+      uint32_t valX;      
+  };
+  uint8_t values[8];
+  
+}dataI_t;
+extern  dataI_t dataI;
 
 typedef union 
 {
@@ -23,17 +48,12 @@ typedef union
       float valY;
       float valX;
   };
-  uint8_t values[16];
+  uint8_t values[8];
   
-}user_data;
-extern  user_data data;
+}dataF_t;
+extern  dataF_t dataF;
 
+void TaskBluetooth( void * pvP );
+void TaskADC( void * pvP );
 
-/*
-extern SENSAS_TIMER tmr_test;
-extern SENSAS_TIMER tmr_serial;
-extern SENSAS_TIMER tmr_rtc;
-*/
-//extern RTC_Micros rtc;
-extern String DateTimeWiFi;
 #endif
