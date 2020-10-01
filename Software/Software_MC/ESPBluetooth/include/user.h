@@ -4,16 +4,7 @@
 #include <Arduino.h>
 //#include "RTClib.h"
 
-typedef union 
-{
-    struct 
-    {
-        uint8_t dummy;
-        unsigned dummy2:7;
-        unsigned DN:1;
-    };
-    uint16_t Preset;
-}SENSAS_TIMER;
+
 
 typedef union
 {

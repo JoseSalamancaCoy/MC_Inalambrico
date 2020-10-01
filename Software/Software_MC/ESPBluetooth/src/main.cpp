@@ -7,9 +7,8 @@
 #define BUFFER_SIZE 10000
 
 TaskHandle_t Bluetooth;   
-   
-
 TaskHandle_t TaskAdc;
+
 xSemaphoreHandle hdl_send;
 
 bool event_Voltaje;
@@ -48,9 +47,6 @@ void setup() {
 
   xTaskCreatePinnedToCore( TaskADC, "TaskAdc", 10000, NULL, 1, &TaskAdc,0);                 
   delay(500); 
-
-  
-  
 }
 
 void loop() 
@@ -61,7 +57,7 @@ void loop()
 
 void TaskBluetooth( void * pvP )
 {
-   SerialBT.begin("SENSAS_Bt");
+   SerialBT.begin("MC_Bt");
    Serial.println("Task Bluetooth Init");
 
    for(;;)
@@ -132,7 +128,6 @@ void TaskADC( void * pvP )
          }
          if((ind_adc %1000)==0)
          {
-            
             Serial.print("IndADC: "); Serial.println(ind_adc); 
             Serial.print("IndBlu: "); Serial.println(ind_bluetooth);
          }
